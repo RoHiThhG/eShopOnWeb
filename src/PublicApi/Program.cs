@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NimblePros.Metronome;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,7 +67,11 @@ var app = builder.Build();
 
 app.Logger.LogInformation("PublicApi App created...");
 
-await app.SeedDatabaseAsync();
+// Seed database only in development
+if (app.Environment.IsDevelopment())
+{
+    await app.SeedDatabaseAsync();
+}
 
 if (app.Environment.IsDevelopment())
 {
