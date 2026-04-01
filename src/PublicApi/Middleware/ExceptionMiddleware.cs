@@ -4,16 +4,19 @@ using System.Threading.Tasks;
 using BlazorShared.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.eShopWeb.ApplicationCore.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.eShopWeb.PublicApi.Middleware;
 
 public class ExceptionMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionMiddleware> _logger;
 
-    public ExceptionMiddleware(RequestDelegate next)
+    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext httpContext)
@@ -30,6 +33,9 @@ public class ExceptionMiddleware
 
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        // Log the exception for Application Insights
+        _logger.LogError(exception, "An unhandled exception occurred. Message: {Message}", exception.Message);
+
         context.Response.ContentType = "application/json";
 
         if (exception is DuplicateException || exception is RoleStillAssignedException)
