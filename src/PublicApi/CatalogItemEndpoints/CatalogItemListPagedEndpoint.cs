@@ -31,9 +31,6 @@ public class CatalogItemListPagedEndpoint(IRepository<CatalogItem> itemRepositor
     {
         await Task.Delay(1000, ct);
 
-        // Test exception - to be removed after testing
-        throw new Exception("Cannot move further");
-
         var response = new ListPagedCatalogItemResponse(request.CorrelationId());
 
         var filterSpec = new CatalogFilterSpecification(request.CatalogBrandId, request.CatalogTypeId);
