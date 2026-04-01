@@ -19,6 +19,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire components.
 builder.AddAspireServiceDefaults();
 
+// Add Application Insights
+builder.Services.AddApplicationInsightsTelemetry();
+
 builder.Services.AddFastEndpoints();
 
 // Use to force loading of appsettings.json of test project
