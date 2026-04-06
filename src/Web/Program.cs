@@ -92,7 +92,16 @@ var app = builder.Build();
 
 app.Logger.LogInformation("App created...");
 
-await app.SeedDatabaseAsync();
+try
+{
+    app.Logger.LogInformation("Starting database seeding...");
+    await app.SeedDatabaseAsync();
+    app.Logger.LogInformation("Database seeding completed successfully.");
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "An error occurred during database seeding. App will continue but may not function properly.");
+}
 
 var catalogBaseUrl = builder.Configuration.GetValue(typeof(string), "CatalogBaseUrl") as string;
 if (!string.IsNullOrEmpty(catalogBaseUrl))
@@ -108,6 +117,20 @@ if (!string.IsNullOrEmpty(catalogBaseUrl))
 app.UseCustomHealthChecks();
 
 app.UseTroubleshootingMiddlewares();
+
+// Add global exception logging middleware
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Unhandled exception in request pipeline for path: {Path}", context.Request.Path);
+        throw;
+    }
+});
 
 app.UseHttpsRedirection();
 app.UseBlazorFrameworkFiles();

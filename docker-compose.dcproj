@@ -9,14 +9,24 @@
     <DockerServiceName>eshopwebmvc</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="AZURE_APP_SERVICE_CONFIGURATION.md" />
+    <None Include="BUG_FIX_REPORT.md" />
+    <None Include="COMPLETE_FIX_SUMMARY.md" />
+    <None Include="CONFIGURATION_SETUP_GUIDE.md" />
+    <None Include="CRITICAL_BUG_FIXED.md" />
     <None Include="DEPLOY.md" />
+    <None Include="DEPLOYMENT_FIX_COMPLETE.md" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
     <None Include="eShopOnWeb_NEW.sln" />
+    <None Include="EXCEPTION_FIX_COMPLETE.md" />
+    <None Include="FIX_DEPLOYED_APP_500_ERROR.md" />
+    <None Include="QUICK_REFERENCE.md" />
     <None Include="READY.md" />
+    <None Include="SETUP_SUMMARY.md" />
     <None Include="src\OrderItemsReserver\.gitignore" />
     <None Include="src\OrderItemsReserver\Functions\ReserveOrderItemsFunction.cs" />
     <None Include="src\OrderItemsReserver\host.json" />
@@ -24,6 +34,7 @@
     <None Include="src\OrderItemsReserver\Models\OrderRequest.cs" />
     <None Include="src\OrderItemsReserver\OrderItemsReserver.csproj" />
     <None Include="src\OrderItemsReserver\Program.cs" />
+    <None Include="START_FIX_HERE.md" />
     <None Include="START_HERE.md" />
   </ItemGroup>
 </Project>

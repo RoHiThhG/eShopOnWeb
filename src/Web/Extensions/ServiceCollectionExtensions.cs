@@ -11,6 +11,8 @@ using Microsoft.eShopWeb.Infrastructure.Identity;
 using Microsoft.eShopWeb.Web.Configuration;
 using Microsoft.eShopWeb.Web.HealthChecks;
 
+// Note: BlazorAdmin.ServicesConfiguration.AddBlazorServices is used in AddBlazor method
+
 namespace Microsoft.eShopWeb.Web.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -25,20 +27,50 @@ public static class ServiceCollectionExtensions
         else
         {
             // Configure SQL Server (prod)
+            var keyVaultEndpoint = configuration["AZURE_KEY_VAULT_ENDPOINT"];
+
+            if (string.IsNullOrEmpty(keyVaultEndpoint))
+            {
+                throw new InvalidOperationException("AZURE_KEY_VAULT_ENDPOINT is not configured. Please add this setting to your App Service Configuration.");
+            }
+
             var credential = new ChainedTokenCredential(new AzureDeveloperCliCredential(), new DefaultAzureCredential());
-            configuration.AddAzureKeyVault(new Uri(configuration["AZURE_KEY_VAULT_ENDPOINT"] ?? ""), credential);
+            configuration.AddAzureKeyVault(new Uri(keyVaultEndpoint), credential);
 
             services.AddDbContext<CatalogContext>((provider, options) =>
             {
-                var connectionString = configuration[configuration["AZURE_SQL_CATALOG_CONNECTION_STRING_KEY"] ?? ""];
+                var connectionStringKey = configuration["AZURE_SQL_CATALOG_CONNECTION_STRING_KEY"];
+                if (string.IsNullOrEmpty(connectionStringKey))
+                {
+                    throw new InvalidOperationException("AZURE_SQL_CATALOG_CONNECTION_STRING_KEY is not configured.");
+                }
+
+                var connectionString = configuration[connectionStringKey];
+                if (string.IsNullOrEmpty(connectionString))
+                {
+                    throw new InvalidOperationException($"Connection string not found in Key Vault for key: {connectionStringKey}");
+                }
+
                 options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure())
                 .AddInterceptors(provider.GetRequiredService<DbCallCountingInterceptor>());
             });
-            services.AddDbContext<AppIdentityDbContext>((provider,options) =>
+
+            services.AddDbContext<AppIdentityDbContext>((provider, options) =>
             {
-                var connectionString = configuration[configuration["AZURE_SQL_IDENTITY_CONNECTION_STRING_KEY"] ?? ""];
+                var connectionStringKey = configuration["AZURE_SQL_IDENTITY_CONNECTION_STRING_KEY"];
+                if (string.IsNullOrEmpty(connectionStringKey))
+                {
+                    throw new InvalidOperationException("AZURE_SQL_IDENTITY_CONNECTION_STRING_KEY is not configured.");
+                }
+
+                var connectionString = configuration[connectionStringKey];
+                if (string.IsNullOrEmpty(connectionString))
+                {
+                    throw new InvalidOperationException($"Connection string not found in Key Vault for key: {connectionStringKey}");
+                }
+
                 options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure())
-                                .AddInterceptors(provider.GetRequiredService<DbCallCountingInterceptor>());
+                    .AddInterceptors(provider.GetRequiredService<DbCallCountingInterceptor>());
             });
         }
     }
@@ -70,7 +102,7 @@ public static class ServiceCollectionExtensions
         // Blazor Admin Required Services for Prerendering
         services.AddScoped<HttpClient>(s => new HttpClient
         {
-            BaseAddress = new Uri("https+http://blazoradmin")
+            BaseAddress = new Uri("http://blazoradmin")
         });
 
         // add blazor services
