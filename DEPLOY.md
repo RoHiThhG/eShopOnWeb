@@ -37,61 +37,81 @@ func start
 
 ### Step 1: Create Azure Resources
 
-```bash
-# Login
-az login
-az account set --subscription "YOUR_SUBSCRIPTION_ID"
+#### 1.1 Create Resource Group
 
-# Create Resource Group
-az group create --name eShopOnWeb-rg --location eastus
+1. Go to [Azure Portal](https://portal.azure.com)
+2. Click **Resource groups** in left sidebar
+3. Click **Create**
+4. Fill in:
+   - **Subscription:** Select your subscription
+   - **Resource group name:** `eShopOnWeb-rg`
+   - **Region:** East US
+5. Click **Review + create** → **Create**
 
-# Create Storage Account
-az storage account create \
-  --name eshoponwebstorage \
-  --resource-group eShopOnWeb-rg \
-  --location eastus \
-  --sku Standard_LRS \
-  --kind StorageV2
+#### 1.2 Create Storage Account for Blob Storage
 
-# Create Blob Container
-az storage container create \
-  --name order-requests \
-  --account-name eshoponwebstorage
+1. In Azure Portal, search for **Storage accounts**
+2. Click **Create**
+3. Fill in:
+   - **Subscription:** Your subscription
+   - **Resource group:** `eShopOnWeb-rg`
+   - **Storage account name:** `eshoponwebstorage` (must be unique)
+   - **Region:** East US
+   - **Performance:** Standard
+   - **Redundancy:** Locally-redundant storage (LRS)
+4. Click **Review + create** → **Create**
 
-# Create Function App Storage
-az storage account create \
-  --name eshopadminfunction \
-  --resource-group eShopOnWeb-rg \
-  --location eastus \
-  --sku Standard_LRS \
-  --kind StorageV2
+#### 1.3 Create Blob Container
 
-# Create Function App
-az functionapp create \
-  --resource-group eShopOnWeb-rg \
-  --consumption-plan-location eastus \
-  --name OrderItemsReserver \
-  --storage-account eshopadminfunction \
-  --runtime dotnet-isolated \
-  --runtime-version 10.0 \
-  --functions-version 4
-```
+1. Open the storage account `eshoponwebstorage`
+2. In left sidebar, go to **Containers** (under Data storage)
+3. Click **+ Container**
+4. **Name:** `order-requests`
+5. **Public access level:** Private
+6. Click **Create**
+
+#### 1.4 Create Storage Account for Function App
+
+1. Search for **Storage accounts** in Azure Portal
+2. Click **Create**
+3. Fill in:
+   - **Subscription:** Your subscription
+   - **Resource group:** `eShopOnWeb-rg`
+   - **Storage account name:** `eshopadminfunction` (must be unique)
+   - **Region:** East US
+   - **Performance:** Standard
+   - **Redundancy:** Locally-redundant storage (LRS)
+4. Click **Review + create** → **Create**
+
+#### 1.5 Create Function App
+
+1. Search for **Function App** in Azure Portal
+2. Click **Create**
+3. Fill in:
+   - **Subscription:** Your subscription
+   - **Resource group:** `eShopOnWeb-rg`
+   - **Function App name:** `OrderItemsReserver`
+   - **Publish:** Code
+   - **Runtime stack:** .NET
+   - **Version:** 8 Isolated
+   - **Region:** East US
+   - **Storage account:** Select `eshopadminfunction`
+4. Click **Review + create** → **Create**
 
 ### Step 2: Configure Function App
 
-```bash
-# Get storage connection string
-STORAGE_CONN=$(az storage account show-connection-string \
-  --name eshoponwebstorage \
-  --resource-group eShopOnWeb-rg \
-  --query connectionString -o tsv)
-
-# Add app setting
-az functionapp config appsettings set \
-  --name OrderItemsReserver \
-  --resource-group eShopOnWeb-rg \
-  --settings BlobStorageConnectionString="$STORAGE_CONN"
-```
+1. Open the **OrderItemsReserver** function app in Azure Portal
+2. Go to **Configuration** (in left sidebar under Settings)
+3. Click **+ New application setting**
+4. Add:
+   - **Name:** `BlobStorageConnectionString`
+   - **Value:** Get connection string from `eshoponwebstorage` storage account:
+     - Go to Storage account `eshoponwebstorage` 
+     - Click **Access keys** in left sidebar
+     - Copy the **Connection string** from key1
+   - Paste it as the value
+5. Click **OK**
+6. Click **Save** at the top
 
 ### Step 3: Publish Azure Function
 
@@ -110,19 +130,19 @@ func azure functionapp publish OrderItemsReserver
 
 ### Step 4: Get Function URL
 
-```bash
-# Get function URL with code key
-az functionapp function show \
-  --resource-group eShopOnWeb-rg \
-  --name OrderItemsReserver \
-  --function-name ReserveOrderItems \
-  --query "invokeUrlTemplate"
-```
+1. In Azure Portal, open **OrderItemsReserver** function app
+2. Go to **Functions** (in left sidebar)
+3. Click **ReserveOrderItems** function
+4. Click **Get Function URL** at the top right
+5. Select **default (Function key)**
+6. Click **Copy**
 
-Copy the URL. It will look like:
+The URL will look like:
 ```
 https://orderitemsreserver.azurewebsites.net/api/reserve-order?code=YOUR_CODE
 ```
+
+Keep this URL for Step 5.
 
 ### Step 5: Configure Web App
 
@@ -163,27 +183,18 @@ Value: https://orderitemsreserver.azurewebsites.net/api/reserve-order?code=YOUR_
 
 ### Check Blob Storage
 
-```bash
-# List files in blob container
-az storage blob list \
-  --container-name order-requests \
-  --account-name eshoponwebstorage \
-  --query "[].name" \
-  -o table
-
-# Download order file to verify
-az storage blob download \
-  --name "order-1-TIMESTAMP.json" \
-  --container-name order-requests \
-  --account-name eshoponwebstorage \
-  --file downloaded-order.json
-```
+1. Go to Storage account **eshoponwebstorage** in Azure Portal
+2. Click **Containers** in left sidebar
+3. Click on **order-requests** container
+4. You should see files named like `order-1-TIMESTAMP.json`
+5. Click a file to view/download it
 
 ### Check Function Logs
 
-1. Azure Portal → Function App "OrderItemsReserver"
-2. Functions → ReserveOrderItems
-3. Click "Monitor" to view logs
+1. In Azure Portal, open **OrderItemsReserver** function app
+2. Go to **Functions** → **ReserveOrderItems**
+3. Click **Monitor** tab
+4. View logs and traces for recent executions
 
 ---
 
@@ -212,35 +223,35 @@ File stored in Blob Storage: `order-1-20250320143000.json`
 
 ### Order not creating JSON file
 
-**Check:**
-1. OrderReserverFunctionUrl configured in app settings
-2. Function URL is correct with code key
-3. Storage connection string correct
-4. Check function logs in Azure Portal
+**Check in Azure Portal:**
 
-**Fix:**
-```bash
-# Verify function URL is working
-curl -X POST https://orderitemsreserver.azurewebsites.net/api/reserve-order?code=YOUR_CODE \
-  -H "Content-Type: application/json" \
-  -d '{"orderId":1,"buyerId":"test","items":[{"itemId":1,"itemName":"Test","quantity":1}],"createdAt":"2025-03-20T00:00:00Z"}'
-```
+1. **OrderReserverFunctionUrl configured?**
+   - App Service → Configuration → Check `OrderReserverFunctionUrl` exists
+
+2. **Function URL is correct with code key?**
+   - Function App → Functions → ReserveOrderItems → Get Function URL
+
+3. **Storage connection string correct?**
+   - Function App → Configuration → Check `BlobStorageConnectionString` value
+   - Compare with Storage account → Access keys → Connection string
+
+4. **Check function logs:**
+   - Function App → Functions → ReserveOrderItems → Monitor tab
+   - Look for error messages
 
 ### Function returns 400 Bad Request
 
-Check JSON format:
-- All required fields present
+Check JSON format in function code:
+- All required fields present (orderId, buyerId, items, createdAt)
 - Correct data types
 - Items array not empty
 
 ### Storage connection issues
 
-Verify connection string:
-```bash
-az storage account show-connection-string \
-  --name eshoponwebstorage \
-  --resource-group eShopOnWeb-rg
-```
+1. Go to Storage account **eshoponwebstorage**
+2. Click **Access keys** in left sidebar
+3. Copy the **Connection string** 
+4. Verify it matches the value in Function App → Configuration → `BlobStorageConnectionString`
 
 ---
 
@@ -269,18 +280,40 @@ Integration files:
 
 ## CLEANUP - DELETE RESOURCES
 
-When done, remove all Azure resources:
+When done, remove all Azure resources from Azure Portal:
 
-```bash
-# Delete entire resource group (all resources)
-az group delete --name eShopOnWeb-rg --yes --no-wait
+### Delete Everything at Once (Recommended)
 
-# Or delete individually
-az functionapp delete --resource-group eShopOnWeb-rg --name OrderItemsReserver --yes
-az webapp delete --resource-group eShopOnWeb-rg --name your-app-name --yes
-az storage account delete --resource-group eShopOnWeb-rg --name eshoponwebstorage --yes
-az group delete --name eShopOnWeb-rg --yes
-```
+1. Go to **Resource groups** in Azure Portal
+2. Search for **eShopOnWeb-rg**
+3. Click on it
+4. Click **Delete resource group** at the top
+5. Type the resource group name to confirm: `eShopOnWeb-rg`
+6. Click **Delete**
+
+This will delete:
+- ✓ Function App (OrderItemsReserver)
+- ✓ Storage Accounts (eshoponwebstorage, eshopadminfunction)
+- ✓ All other resources in the group
+
+### Delete Individual Resources
+
+If you want to delete resources one by one:
+
+1. **Delete Function App:**
+   - Search "Function App" in Portal
+   - Click **OrderItemsReserver**
+   - Click **Delete** at top → Confirm
+
+2. **Delete Storage Accounts:**
+   - Search "Storage accounts" in Portal
+   - Click **eshoponwebstorage** → Delete → Confirm
+   - Click **eshopadminfunction** → Delete → Confirm
+
+3. **Delete Resource Group:**
+   - Go to **Resource groups**
+   - Click **eShopOnWeb-rg**
+   - Click **Delete resource group** → Confirm
 
 ---
 
