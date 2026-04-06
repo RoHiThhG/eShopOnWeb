@@ -18,17 +18,20 @@ public class OrderService : IOrderService
     private readonly IRepository<Basket> _basketRepository;
     private readonly IRepository<CatalogItem> _itemRepository;
     private readonly IMediator _mediator;
+    private readonly IOrderReservationService _orderReservationService;
 
     public OrderService(IRepository<Basket> basketRepository,
         IRepository<CatalogItem> itemRepository,
         IRepository<Order> orderRepository,
-        IUriComposer uriComposer, IMediator mediator)
+        IUriComposer uriComposer, IMediator mediator,
+        IOrderReservationService orderReservationService)
     {
         _orderRepository = orderRepository;
         _uriComposer = uriComposer;
         _basketRepository = basketRepository;
         _itemRepository = itemRepository;
         _mediator = mediator;
+        _orderReservationService = orderReservationService;
     }
 
     public async Task CreateOrderAsync(int basketId, Address shippingAddress)
@@ -55,5 +58,12 @@ public class OrderService : IOrderService
         await _orderRepository.AddAsync(order);
         OrderCreatedEvent orderCreatedEvent = new OrderCreatedEvent(order);
         await _mediator.Publish(orderCreatedEvent);
+
+        // Send order reservation to Azure Function
+        var itemsForReservation = items.Select(item => 
+            (item.ItemOrdered.CatalogItemId, item.ItemOrdered.ProductName, item.Units)
+        ).ToList();
+
+        await _orderReservationService.SendOrderReservationAsync(order.Id, basket.BuyerId, itemsForReservation);
     }
 }

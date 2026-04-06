@@ -9,10 +9,21 @@
     <DockerServiceName>eshopwebmvc</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="DEPLOY.md" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="eShopOnWeb_NEW.sln" />
+    <None Include="READY.md" />
+    <None Include="src\OrderItemsReserver\.gitignore" />
+    <None Include="src\OrderItemsReserver\Functions\ReserveOrderItemsFunction.cs" />
+    <None Include="src\OrderItemsReserver\host.json" />
+    <None Include="src\OrderItemsReserver\local.settings.json" />
+    <None Include="src\OrderItemsReserver\Models\OrderRequest.cs" />
+    <None Include="src\OrderItemsReserver\OrderItemsReserver.csproj" />
+    <None Include="src\OrderItemsReserver\Program.cs" />
+    <None Include="START_HERE.md" />
   </ItemGroup>
 </Project>

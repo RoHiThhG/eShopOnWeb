@@ -17,10 +17,6 @@ using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Test startup error - to be removed after testing
-throw new Exception("Cannot move further");
-
-
 // Add service defaults & Aspire components.
 builder.AddAspireServiceDefaults();
 

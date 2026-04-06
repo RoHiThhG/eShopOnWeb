@@ -25,6 +25,10 @@ public static class ConfigureCoreServices
         services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
         services.AddTransient<IEmailSender, LoggerEmailSender>();
 
+        // Add Order Reservation Service
+        services.AddHttpClient<IOrderReservationService, OrderReservationService>();
+
         return services;
     }
 }
+

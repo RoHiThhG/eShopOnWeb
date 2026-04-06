@@ -96,5 +96,13 @@
     <PackageVersion Include="MSTest.TestAdapter" Version="4.0.2" />
     <PackageVersion Include="MSTest.TestFramework" Version="4.0.2" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <!-- Azure Functions -->
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.20.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="2.0.7" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
+    <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.7.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
   </ItemGroup>
 </Project>
